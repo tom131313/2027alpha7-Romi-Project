@@ -358,7 +358,7 @@ public class CommandSchedulerLog
 }
 /*
 When the default command is bumped out,
-the execution sequence is yield, interrupt, whenCancelled, cancel.
+the execution sequence is yield, interrupt, whenCanceled, cancel.
 When the interrupter ends somehow and there isn't another command for the requirements,
 then the default command is scheduled and mounted to run.
 If the default command ends normally (likely that shouldn't happen), it is immediately
