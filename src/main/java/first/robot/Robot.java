@@ -3,6 +3,7 @@ package first.robot;
 import java.lang.invoke.MethodHandles;
 
 import org.wpilib.command3.Scheduler;
+import org.wpilib.driverstation.DriverStationDisplay;
 import org.wpilib.framework.OpModeRobot;
 import org.wpilib.telemetry.Telemetry;
 
@@ -20,6 +21,9 @@ public class Robot extends OpModeRobot
     public Robot()
     {
         System.out.println("Hello World!");
+        DriverStationDisplay.addLine("The Driver Station Display");
+        DriverStationDisplay.addLine("Hello World!");
+        DriverStationDisplay.updateLines();
     }
 
     @Override
