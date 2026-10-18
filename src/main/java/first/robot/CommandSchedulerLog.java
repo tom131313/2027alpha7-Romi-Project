@@ -25,7 +25,11 @@ import org.wpilib.util.WPIUtilJNI;
 <pre><code>
 
 class Robot:
-    robotContainer = new RobotContainer();
+    private final Scheduler scheduler = Scheduler.getDefault();
+    private final RobotContainer robotContainer = new RobotContainer(this);
+
+    private final ProtobufLogEntry<Scheduler> schedulerLog =
+      ProtobufLogEntry.create(DataLogManager.getLog(), "Scheduler", Scheduler.proto);
 
     // Start recording to data log
     DataLogManager.start();
@@ -33,9 +37,12 @@ class Robot:
     // Record DS control and joystick data.
     // Change to `false` to not record joystick data.
     DriverStation.startDataLog(DataLogManager.getLog(), true);
-}
+
+    // periodically:
+    schedulerLog.append(scheduler); // dumps some scheduler info to NT but bug in 2027 alpha7 causes DataLog to show <invalid> instead of the good NT data that does show but passes by quickly!
 
 class RobotContainer:
+    // this is configuration code that could be put in a config file
     //Choices Of Destinations of Command Logging
     // public static EnumSet<LogsSelector> logsSelector =
     //     EnumSet.allOf(LogsSelector.class);
@@ -47,6 +54,7 @@ class RobotContainer:
         );
     // OR PICK NONE
     // public static EnumSet<LogsSelector> logsSelector = EnumSet.noneOf(LogsSelector.class);
+    // end configuration code
 
     private CommandSchedulerLog schedulerLog = new CommandSchedulerLog(logsSelector);
 </code></pre>
@@ -64,12 +72,11 @@ public class CommandSchedulerLog
         useConsole, useDataLog
     };
 
-    private static final Alert COMMAND_LOGGING = new Alert("Log Commands", "1", "No Command Logging Selected", Alert.Level.LOW);
+    private static final Alert COMMAND_LOGGING_OFF = new Alert("Log Commands", "1", "No Command Logging Selected", Alert.Level.LOW);
     private static final Alert MOUNTED_ERROR = new Alert("Log Commands", "2", "", Alert.Level.HIGH);
 
     private final long programStartTime = WPIUtilJNI.getProgramStartTime();
     private EnumSet<LogsSelector> m_logsSelector;
-    protected Scheduler m_scheduler;
     private final HashMap<Command, Integer> m_currentCommands = new HashMap<Command, Integer>();
     private final NetworkTable m_nt;
     private final StringEntry m_scheduledCommandLogEntry;
@@ -130,10 +137,12 @@ public class CommandSchedulerLog
     }
 
     /**
-     * A command was queued to run.
+     * A command was queued to run
+     * 
      * <p>If the command is scheduled before this case is instantiated, this callback doesn't happen
      * and mounted will throw an exception since the scheduled key is missing. Mounted has logic to
      * accommodate that case.
+     * 
      * <p>Datalog doesn't update the log timestamp if new data has the same value as previous data.
      * This isn't particularly concerning for mounted and yielded but for others it could be
      * significant for troubleshooting. So a timestamp is added to the text to make it unique. For
@@ -166,7 +175,8 @@ public class CommandSchedulerLog
     }
 
     /**
-     * The scheduler mounted - started or resumed - a command
+     * A command was mounted - started or resumed - by the scheduler
+     * 
      * <p>This can generate a lot of events so logging is suppressed except for the first
      * occurrence. Total count is logged at command end.
      * 
@@ -208,7 +218,8 @@ public class CommandSchedulerLog
 
     /**
      * A command paused with Coroutine.yield()
-     * Log only the yield after the command was first mounted
+     * 
+     * <p>Log only the yield after the command was first mounted
      * @param cmd
      * @param time
      */
@@ -337,8 +348,8 @@ public class CommandSchedulerLog
         Scheduler.getDefault().addEventListener( // Can (optionally) generate a lot of output
             event -> {
               // examples of debug logging and suppressing huge excess output so the good stuff is easier to find
-              // System.out.println("[SchedulerEvent] " + event); // trivial logging to console but it works and is complete but many Mounted and Yielded
-              // if (event.toString().contains("Achieve Hue Display")) return;
+              // System.out.println("[SchedulerEvent] " + event); // trivial logging to console; it works and is complete but many Mounted and Yielded
+              // if (event.toString().contains("Achieve Hue Display")) return; // suppress unneeded command data
               switch (event) { // a smarter formatting to hold down excess output
                   case SchedulerEvent.Scheduled(var cmd, var time) -> logCommandScheduled(cmd, time);
                   case SchedulerEvent.Mounted(var cmd, var time) -> logCommandMounted(cmd, time);
@@ -352,7 +363,7 @@ public class CommandSchedulerLog
           );
       }
       else {
-        COMMAND_LOGGING.set(true);
+        COMMAND_LOGGING_OFF.set(true);
       }
   }
 }

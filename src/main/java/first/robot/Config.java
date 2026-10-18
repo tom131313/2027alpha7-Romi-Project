@@ -22,7 +22,8 @@ public interface Config {
      * Choices Of Destinations of Command Logging
      */    
     public interface CommandLoggingSettings {
-
+        
+        // PICK ALL COMMAND LOGGING METHODS
         // public static EnumSet<LogsSelector> logsSelector =
         //     EnumSet.allOf(LogsSelector.class);
         

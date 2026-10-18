@@ -3,8 +3,10 @@ package first.robot;
 import java.lang.invoke.MethodHandles;
 
 import org.wpilib.command3.Scheduler;
+import org.wpilib.datalog.ProtobufLogEntry;
 import org.wpilib.driverstation.DriverStationDisplay;
 import org.wpilib.framework.OpModeRobot;
+import org.wpilib.system.DataLogManager;
 import org.wpilib.telemetry.Telemetry;
 
 public class Robot extends OpModeRobot
@@ -18,6 +20,9 @@ public class Robot extends OpModeRobot
     private final Scheduler scheduler = Scheduler.getDefault();
     private final RobotContainer robotContainer = new RobotContainer(this);
 
+    private final ProtobufLogEntry<Scheduler> schedulerLog =
+      ProtobufLogEntry.create(DataLogManager.getLog(), "Scheduler", Scheduler.proto);
+
     public Robot()
     {
         System.out.println("Hello World!");
@@ -30,6 +35,7 @@ public class Robot extends OpModeRobot
     public void robotPeriodic()
     {
         scheduler.run();
+        schedulerLog.append(scheduler); // dumps some scheduler info to NT but bug in 2027 alpha7 causes DataLog to show <invalid> instead of the good NT data that does show but passes by quickly!
     }
 
     @Override
