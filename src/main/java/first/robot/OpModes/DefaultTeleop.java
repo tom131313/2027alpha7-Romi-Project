@@ -152,4 +152,18 @@ public class AnsiArt {
         System.out.println(RESET);
     }
 }
+
+
+I’ll write a small Java program that draws a rainbow banner and a sun-over-grass scene using
+ 256-color ANSI codes.
+
+I wrote AnsiArt.java, a short program that prints a rainbow banner and a small scene with a sun over
+ a grass strip. I haven’t run it. Compile and run it with javac AnsiArt.java && java AnsiArt (Java 11+).
+
+It uses 256-color escape codes: ESC[48;5;Nm sets a background color and ESC[0m resets it. Each scene
+ cell is two spaces wide so the pixels come out roughly square. To change the picture, edit the
+ rainbow array or the sun position and radius.
+
+You’ll need a terminal that supports ANSI colors. Most do, but the old Windows cmd.exe may need
+ Windows Terminal instead.
 */
