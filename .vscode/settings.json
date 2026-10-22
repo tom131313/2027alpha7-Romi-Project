@@ -74,6 +74,15 @@
 
     // Matches found globally using the sidebar Search panel (Ctrl+Shift+F)
     "search.resultsInfoText": "#FFFFFF",
-    "peekViewEditor.matchHighlightBackground": "#FF00FF"
+    "peekViewEditor.matchHighlightBackground": "#FF00FF",
+    
+    // The background color of the text you actually selected
+    "editor.selectionBackground": "#4400ccaa", 
+    
+    // The color of other matching occurrences of the selected text
+    "editor.selectionHighlightBackground": "#ffff0055",
+    
+    // Optional: Add a border around other matching occurrences to make them pop
+    "editor.selectionHighlightBorder": "#ffcc00"
 }
 }
