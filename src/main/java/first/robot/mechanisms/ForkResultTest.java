@@ -35,7 +35,7 @@ public class ForkResultTest implements OpMode {
     public B b;
     public C c;
 
-    private int count;
+    private int count = 0;
     Command testCommand;
     private static final Selectable<Command> testCommandChooser = new Selectable<>();
     private static final String testCommandChooserName = "Test Command";
@@ -212,7 +212,7 @@ public class ForkResultTest implements OpMode {
     */
     private final Consumer<Coroutine> coro2 = coroutine ->
         {
-            coroutine.setCancelOnForkFailure(false); // handle errors ourself in checkFork
+            // coroutine.setCancelOnForkFailure(false); // testing handle errors ourself in checkFork
             // BAD CODE BLOCK; if coroutine.setCancelOnForkFailure(true);, then successful is implied
             // and failure gives some unreachable code and this is improper use of command factories
             // System.out.println("fork A " + (coroutine.fork(a.Acommand()).successful()? "successful":"failed"));
@@ -221,22 +221,28 @@ public class ForkResultTest implements OpMode {
             // coroutine.awaitAll(a.Acommand(), b.Bcommand(), c.Ccommand());
 
             // GOOD CODE BLOCK
-            // var tempA = a.Acommand();
-            // var tempB = b.Bcommand();
-            // var tempC = c.Ccommand();
+            var tempA = a.Acommand();
+            var tempB = b.Bcommand();
+            var tempC = c.Ccommand();
             // System.out.println("fork A " + (coroutine.fork(tempA).successful()? "successful":"failed"));
             // System.out.println("fork B " + (coroutine.fork(tempB).successful()? "successful":"failed"));
             // System.out.println("fork C " + (coroutine.fork(tempC).successful()? "successful":"failed"));
             // do more stuff
             // coroutine.awaitAll(tempA, tempB, tempC);
+            var result1 = coroutine.fork(tempA, tempB, tempC);
+            checkFork(result1);
+            var result2 = coroutine.fork(tempA, tempB, tempC); // testing duplicate commands
+            checkFork(result2);
 
             // BETTER CODE BLOCK FOR EFFICIENCY AND FOOL-PROOFING
             // fork a group of commands based on what needs to be awaited at once
-            var result = coroutine.fork(a.Acommand(), b.Bcommand(), c.Ccommand()); // can await these 3 so can fork together
-            checkFork(result); // error checking is nice to do if not using the default coroutine.setCancelOnForkFailure(true)
+            // var result = coroutine.fork(a.Acommand(), b.Bcommand(), c.Ccommand()); // can await these 3 so can fork together
+            // checkFork(result); // error checking is nice to do if not using the default coroutine.setCancelOnForkFailure(true)
             // want to do more stuff here so we had to pick this fork/await combo instead of just
             //  coroutine.awaitAll(a.Acommand(), b.Bcommand(), c.Ccommand());
-            result.awaitCompletion(); // can await all 3 commands together here so can fork all 3 together above
+
+            result1.awaitCompletion(); // can await all 3 commands together here so can fork all 3 together above
+            result2.awaitCompletion(); // can await all 3 commands together here so can fork all 3 together above
         };
 
     @Override
@@ -246,6 +252,16 @@ public class ForkResultTest implements OpMode {
         if (count%100 == 0) {
             System.out.println("Test Command to be run " + testCommand.name());
             Telemetry.log("Test Command to be run", testCommand.name());
+            if (count <= 101) {
+                System.out.println("create and schedule unSafe");
+                Mechanism unSafe1 = new Mechanism(){}; // using default of can't run disabled
+                Mechanism unSafe2 = new Mechanism(){}; // using default of can't run disabled
+                var testFailure1 = Command.requiring(unSafe1, unSafe2).executing(_ -> {System.out.println("This should not be running");}).named("should fail 1");
+                var testFailure2 = Command.requiring(unSafe1).executing(_ -> {System.out.println("This should not be running");}).named("should fail 2");
+                var testFailure3 = Command.requiring(unSafe2).executing(_ -> {System.out.println("This should not be running");}).named("should fail 3");
+                scheduler.schedule(testFailure1);
+                scheduler.schedule(Command.noRequirements(coroutine -> coroutine.fork(testFailure2, testFailure3)).named("should fork failure"));
+            }
         }
     }
     

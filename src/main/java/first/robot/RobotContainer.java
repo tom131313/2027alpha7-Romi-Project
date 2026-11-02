@@ -24,7 +24,7 @@ public final class RobotContainer
 
     private final Robot robot;
     @SuppressWarnings("unused")
-    private CommandSchedulerLog schedulerLog = new CommandSchedulerLog(logsSelector);
+    private CommandSchedulerLog commandSchedulerLog = new CommandSchedulerLog(logsSelector);
 
     // Sensors
     private final CommandXboxController xbox = new CommandXboxController(0);
